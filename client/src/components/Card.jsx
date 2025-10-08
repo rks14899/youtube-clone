@@ -61,9 +61,10 @@ const Info = styled.div`
 export default function Card({ type, video }) {
   const [channel, setChannel] = useState({});
 
-  // ✅ Dynamic backend URL
+  // ✅ Fixed: remove '/api' only for static image URLs
   const backendURL =
-    process.env.REACT_APP_API_URL || "http://localhost:8800";
+    (process.env.REACT_APP_API_URL?.replace("/api", "")) ||
+    "http://localhost:8800";
 
   useEffect(() => {
     if (!video?.userId) return;
@@ -81,11 +82,11 @@ export default function Card({ type, video }) {
     fetchChannel();
   }, [video?.userId]);
 
-  // ✅ Updated to use backendURL
+  // ✅ Updated to safely build full profile image URL
   const getProfileImage = (imgPath) => {
     if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `${backendURL}${imgPath}`;
+    return `${backendURL}${imgPath.startsWith("/") ? "" : "/"}${imgPath}`;
   };
 
   return (
@@ -95,7 +96,7 @@ export default function Card({ type, video }) {
           type={type}
           src={
             video?.imgUrl
-              ? `${backendURL}${video.imgUrl}`
+              ? `${backendURL}${video.imgUrl.startsWith("/") ? "" : "/"}${video.imgUrl}`
               : defaultChannelImg
           }
           alt={video?.title || "Video thumbnail"}

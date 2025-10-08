@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ use centralized axios instance
 import { useDispatch } from "react-redux";
 import { loginStart, loginSuccess, loginFailure } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,7 @@ const Wrapper = styled.div`
   align-items: center;
   flex-direction: column;
   background-color: ${({ theme }) => theme.bgLighter};
-  border: 1px solid rgba(180, 180, 180, 0.6); /* ✅ visible border */
+  border: 1px solid rgba(180, 180, 180, 0.6);
   padding: 30px 40px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -127,12 +127,9 @@ const Signin = () => {
 
     dispatch(loginStart());
     try {
-      const res = await axios.post("http://localhost:8800/api/auth/signin", {
-        email,
-        password,
-      });
+      const res = await axios.post("/auth/signin", { email, password });
       dispatch(loginSuccess(res.data));
-      navigate("/"); // go to homepage
+      navigate("/");
     } catch (err) {
       dispatch(loginFailure());
       alert(err.response?.data?.message || "Sign in failed!");
@@ -146,7 +143,7 @@ const Signin = () => {
 
     dispatch(loginStart());
     try {
-      const res = await axios.post("http://localhost:8800/api/auth/signup", {
+      const res = await axios.post("/auth/signup", {
         username,
         email,
         password,

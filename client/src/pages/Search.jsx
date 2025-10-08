@@ -1,7 +1,7 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
+import axios from "../utils/axios"; // ✅ centralized axios instance
 import Card from "../components/Card";
 
 const Container = styled.div`
@@ -17,9 +17,8 @@ const Search = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8800/api/videos/search${query}`
-        );
+        // ✅ Use relative endpoint — baseURL handled by axios instance
+        const res = await axios.get(`/videos/search${query}`);
         setVideos(res.data);
       } catch (err) {
         console.error("Search error:", err);

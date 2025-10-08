@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ use centralized axios instance
 import Card from "../components/Card";
 
 const Container = styled.div`
@@ -13,24 +13,24 @@ const Recommendation = ({ tags, currentVideoId }) => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        let url;
+        let endpoint = "";
 
         if (tags && tags.length > 0) {
           // 🔹 Fetch related videos by tags
           const tagsQuery = tags.join(",");
-          url = `http://localhost:8800/api/videos/tags?tags=${encodeURIComponent(
+          endpoint = `/videos/tags?tags=${encodeURIComponent(
             tagsQuery
           )}&exclude=${currentVideoId}`;
         } else {
           // 🔹 Fallback: fetch all videos if no tags found
           console.log("No tags found — fetching all videos as recommendations.");
-          url = `http://localhost:8800/api/videos/all`;
+          endpoint = `/videos/all`;
         }
 
-        console.log("Fetching recommendations from:", url);
-        const res = await axios.get(url);
-
+        console.log("Fetching recommendations from:", endpoint);
+        const res = await axios.get(endpoint);
         console.log("API Response Data:", res.data);
+
         setVideos(res.data);
       } catch (err) {
         console.error("Failed to fetch recommended videos:", err);

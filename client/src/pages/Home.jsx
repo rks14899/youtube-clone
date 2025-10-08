@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Card from "../components/Card";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ use centralized axios instance
 import { logout } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -41,17 +41,17 @@ export default function Home({ type }) {
         setLoading(true);
         setError(false);
 
-        let url = "";
+        let endpoint = "";
         let headers = {};
 
+        // ✅ Use relative endpoints — axios will auto-use correct baseURL
         if (type === "all") {
-          url = "http://localhost:8800/api/videos/all";
-          headers = {}; // No auth needed
+          endpoint = "/videos/all";
         } else if (type === "user" && currentUser?._id) {
-          url = `http://localhost:8800/api/videos/user/${currentUser._id}`;
+          endpoint = `/videos/user/${currentUser._id}`;
           headers = { Authorization: `Bearer ${currentUser.token}` };
         } else if (type === "sub" && currentUser?._id) {
-          url = `http://localhost:8800/api/videos/subscriptions/${currentUser._id}`;
+          endpoint = `/videos/subscriptions/${currentUser._id}`;
           headers = { Authorization: `Bearer ${currentUser.token}` };
         } else {
           setVideos([]);
@@ -59,13 +59,15 @@ export default function Home({ type }) {
           return;
         }
 
-        console.log("Fetching videos:", type, "URL:", url);
+        console.log("Fetching videos:", type, "Endpoint:", endpoint);
 
-        const res = await axios.get(url, { headers });
+        const res = await axios.get(endpoint, { headers });
         setVideos(res.data);
       } catch (err) {
         console.error("Error fetching videos:", err);
         setError(true);
+
+        // ✅ Handle invalid/expired token
         if (err.response?.status === 401 || err.response?.status === 403) {
           dispatch(logout());
           navigate("/signin");

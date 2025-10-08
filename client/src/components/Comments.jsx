@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Comment from "./Comment";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ Use centralized axios instance
 
 const Container = styled.div``;
 
@@ -40,20 +40,22 @@ export const Comments = ({ videoId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
-  const BACKEND_URL = "http://localhost:8800/api/comments";
+  // ✅ Dynamic backend URL for images
+  const backendURL =
+    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
 
-  // ✅ helper to get full image URL
+  // ✅ Helper to get full image URL
   const getProfileImage = (imgPath) => {
-    if (!imgPath) return "http://localhost:8800/profiles/default-profile.png";
+    if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `http://localhost:8800${imgPath}`;
+    return `${backendURL}${imgPath}`;
   };
 
-  // fetch all comments
+  // ✅ Fetch all comments
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await axios.get(`${BACKEND_URL}/${videoId}`);
+        const res = await axios.get(`/comments/${videoId}`);
         setComments(res.data);
       } catch (err) {
         console.error("Failed to fetch comments:", err);
@@ -62,12 +64,12 @@ export const Comments = ({ videoId }) => {
     fetchComments();
   }, [videoId]);
 
-  // add comment on Enter key
+  // ✅ Add comment on Enter key
   const handleKeyPress = async (e) => {
     if (e.key === "Enter" && newComment.trim() !== "") {
       try {
         const res = await axios.post(
-          BACKEND_URL,
+          "/comments",
           { desc: newComment, videoId },
           { headers: { Authorization: `Bearer ${currentUser.token}` } }
         );

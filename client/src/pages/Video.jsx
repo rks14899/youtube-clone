@@ -10,11 +10,12 @@ import Comments from "../components/Comments";
 import Recommendation from "../components/Recommendation";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ centralized axios instance
 import { dislike, fetchSuccess, like } from "../redux/videoSlice";
 import { format } from "timeago.js";
 import { subscription, logout } from "../redux/userSlice";
 
+// ---------------- Styled Components ----------------
 const Container = styled.div`
   display: flex;
   gap: 24px;
@@ -23,10 +24,13 @@ const Container = styled.div`
     flex-direction: column;
   }
 `;
+
 const Content = styled.div`
   flex: 5;
 `;
+
 const VideoWrapper = styled.div``;
+
 const Title = styled.h1`
   font-size: 18px;
   font-weight: 400;
@@ -34,12 +38,14 @@ const Title = styled.h1`
   margin-bottom: 10px;
   color: ${({ theme }) => theme.text};
 `;
+
 const Details = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
 `;
+
 const Info = styled.span`
   color: ${({ theme }) => theme.textSoft};
 `;
@@ -73,39 +79,47 @@ const Hr = styled.hr`
   margin: 15px 0px;
   border: 0.5px solid ${({ theme }) => theme.soft};
 `;
+
 const Channel = styled.div`
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
 `;
+
 const ChannelInfo = styled.div`
   display: flex;
   gap: 20px;
 `;
+
 const Image = styled.img`
   width: 50px;
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
 `;
+
 const ChannelDetail = styled.div`
   display: flex;
   flex-direction: column;
   color: ${({ theme }) => theme.text};
 `;
+
 const ChannelName = styled.span`
   font-weight: 500;
 `;
+
 const ChannelCounter = styled.span`
   margin-top: 5px;
   margin-bottom: 20px;
   color: ${({ theme }) => theme.textSoft};
   font-size: 12px;
 `;
+
 const Description = styled.p`
   font-size: 14px;
 `;
+
 const Subscribe = styled.button`
   background-color: #cc1a00;
   font-weight: 500;
@@ -120,6 +134,7 @@ const Subscribe = styled.button`
     background-color: #a21600;
   }
 `;
+
 const VideoFrame = styled.video`
   max-height: 720px;
   width: 100%;
@@ -127,6 +142,7 @@ const VideoFrame = styled.video`
   border-radius: 6px;
 `;
 
+// ---------------- Main Component ----------------
 const Video = () => {
   const { currentUser } = useSelector((state) => state.user);
   const { currentVideo } = useSelector((state) => state.video);
@@ -136,31 +152,24 @@ const Video = () => {
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Fetch video + channel data
   useEffect(() => {
     const fetchData = async () => {
       if (!path) return;
       setLoading(true);
 
       try {
-        const videoRes = await axios.get(
-          `http://localhost:8800/api/videos/find/${path}`,
-          { withCredentials: true }
-        );
-
+        const videoRes = await axios.get(`/videos/find/${path}`);
         const userId = videoRes.data.userId?._id || videoRes.data.userId;
 
-        const channelRes = await axios.get(
-          `http://localhost:8800/api/users/find/${userId}`,
-          { withCredentials: true }
-        );
-
+        const channelRes = await axios.get(`/users/find/${userId}`);
         setChannel(channelRes.data);
         dispatch(fetchSuccess(videoRes.data));
       } catch (err) {
         console.error("Failed to fetch video/channel data:", err);
         setChannel({
           name: "Unknown",
-          img: "/default-profile.png",
+          img: "/profiles/default-profile.png",
           subscribers: 0,
         });
       } finally {
@@ -171,20 +180,14 @@ const Video = () => {
     fetchData();
   }, [path, dispatch]);
 
-  // ✅ LIKE / DISLIKE HANDLERS
   // ✅ LIKE HANDLER
   const handleLike = async () => {
     try {
-      await axios.put(
-        `http://localhost:8800/api/users/like/${currentVideo._id}`,
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${currentUser?.token || ""}`,
-          },
-        }
-      );
+      await axios.put(`/users/like/${currentVideo._id}`, null, {
+        headers: {
+          Authorization: `Bearer ${currentUser?.token || ""}`,
+        },
+      });
       dispatch(like(currentUser._id));
     } catch (err) {
       console.error("Like failed:", err.response?.data || err.message);
@@ -194,36 +197,24 @@ const Video = () => {
   // ✅ DISLIKE HANDLER
   const handleDislike = async () => {
     try {
-      await axios.put(
-        `http://localhost:8800/api/users/dislike/${currentVideo._id}`,
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${currentUser?.token || ""}`,
-          },
-        }
-      );
+      await axios.put(`/users/dislike/${currentVideo._id}`, null, {
+        headers: {
+          Authorization: `Bearer ${currentUser?.token || ""}`,
+        },
+      });
       dispatch(dislike(currentUser._id));
     } catch (err) {
       console.error("Dislike failed:", err.response?.data || err.message);
     }
   };
 
+  // ✅ SUBSCRIBE / UNSUBSCRIBE HANDLER
   const handleSub = async () => {
     try {
       if (currentUser?.subscribedUsers?.includes(channel?._id)) {
-        await axios.put(
-          `http://localhost:8800/api/users/unsub/${channel._id}`,
-          {},
-          { withCredentials: true }
-        );
+        await axios.put(`/users/unsub/${channel._id}`);
       } else {
-        await axios.put(
-          `http://localhost:8800/api/users/sub/${channel._id}`,
-          {},
-          { withCredentials: true }
-        );
+        await axios.put(`/users/sub/${channel._id}`);
       }
       dispatch(subscription(channel._id));
     } catch (err) {
@@ -238,14 +229,17 @@ const Video = () => {
       </div>
     );
 
+  const getMediaUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8800"}${path}`;
+  };
+
   return (
     <Container>
       <Content>
         <VideoWrapper>
-          <VideoFrame
-            src={`http://localhost:8800${currentVideo?.videoUrl}`}
-            controls
-          />
+          <VideoFrame src={getMediaUrl(currentVideo?.videoUrl)} controls />
         </VideoWrapper>
 
         <Title>{currentVideo?.title || "Untitled"}</Title>
@@ -255,7 +249,6 @@ const Video = () => {
             {currentVideo?.createdAt ? format(currentVideo.createdAt) : ""}
           </Info>
 
-          {/* ✅ LIKE/DISLIKE/SHARE/SAVE SECTION */}
           <Buttons>
             <Button onClick={handleLike}>
               {currentVideo?.likes?.includes(currentUser?._id) ? (
@@ -291,8 +284,8 @@ const Video = () => {
             <Image
               src={
                 channel?.img
-                  ? `http://localhost:8800${channel.img}`
-                  : "http://localhost:8800/profiles/default-profile.png"
+                  ? getMediaUrl(channel.img)
+                  : getMediaUrl("/profiles/default-profile.png")
               }
             />
             <ChannelDetail>

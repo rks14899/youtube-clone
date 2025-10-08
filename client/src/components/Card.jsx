@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../utils/axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -20,7 +20,7 @@ const Image = styled.img`
   background-color: #999;
   object-fit: cover;
   border-radius: 8px;
-  flex-shrink: 0; /* Prevent image from shrinking unevenly */
+  flex-shrink: 0;
 `;
 
 const Details = styled.div`
@@ -61,15 +61,17 @@ const Info = styled.div`
 export default function Card({ type, video }) {
   const [channel, setChannel] = useState({});
 
+  // ✅ Dynamic backend URL
+  const backendURL =
+    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
+
   useEffect(() => {
     if (!video?.userId) return;
 
     const fetchChannel = async () => {
       try {
         const userId = video.userId?._id || video.userId;
-        const res = await axios.get(
-          `http://localhost:8800/api/users/find/${userId}`
-        );
+        const res = await axios.get(`/users/find/${userId}`);
         setChannel(res.data);
       } catch (err) {
         console.error("Error fetching channel:", err);
@@ -79,10 +81,11 @@ export default function Card({ type, video }) {
     fetchChannel();
   }, [video?.userId]);
 
+  // ✅ Updated to use backendURL
   const getProfileImage = (imgPath) => {
-    if (!imgPath) return "http://localhost:8800/profiles/default-profile.png";
+    if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `http://localhost:8800${imgPath}`;
+    return `${backendURL}${imgPath}`;
   };
 
   return (
@@ -92,7 +95,7 @@ export default function Card({ type, video }) {
           type={type}
           src={
             video?.imgUrl
-              ? `http://localhost:8800${video.imgUrl}`
+              ? `${backendURL}${video.imgUrl}`
               : defaultChannelImg
           }
           alt={video?.title || "Video thumbnail"}
@@ -105,9 +108,7 @@ export default function Card({ type, video }) {
           />
           <Texts>
             <Title>{video?.title}</Title>
-            <ChannelName>
-              {channel?.username || "Unknown Channel"}
-            </ChannelName>
+            <ChannelName>{channel?.username || "Unknown Channel"}</ChannelName>
             <Info>
               {video?.views || 0} views •{" "}
               {video?.createdAt ? format(video.createdAt) : "Unknown date"}

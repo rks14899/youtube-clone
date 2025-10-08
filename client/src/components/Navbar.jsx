@@ -51,16 +51,15 @@ const Wrapper = styled.div`
 `;
 
 const LeftSection = styled.div`
-  display: none; /* hide by default (desktop) */
+  display: none;
   align-items: center;
   gap: 8px;
 
   @media (max-width: 768px) {
-    display: flex; /* show only on mobile/tablet */
+    display: flex;
     flex: 1;
   }
 `;
-
 
 const Logo = styled.div`
   display: flex;
@@ -78,7 +77,6 @@ const Img = styled.img`
   object-fit: contain;
 `;
 
-// ✅ Search wrapper stays centered and responsive
 const CenterSection = styled.div`
   flex: 1;
   display: flex;
@@ -154,7 +152,6 @@ const Button = styled.button`
   }
 `;
 
-// ✅ Better mobile-friendly layout
 const UserSection = styled.div`
   display: flex;
   align-items: center;
@@ -237,10 +234,14 @@ const Navbar = ({ toggleSidebar }) => {
     navigate("/signin");
   };
 
+  // ✅ Dynamic backend URL for profile images
+  const backendURL =
+    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
+
   const getProfileImage = (imgPath) => {
-    if (!imgPath) return "http://localhost:8800/profiles/default-profile.png";
+    if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `http://localhost:8800${imgPath}`;
+    return `${backendURL}${imgPath}`;
   };
 
   return (

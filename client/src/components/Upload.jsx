@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
+import axios from "../utils/axios"; // ✅ use centralized axios instance
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { createPortal } from "react-dom";
@@ -13,7 +13,7 @@ const Overlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  overflow: hidden; /* ✅ Prevent body scroll shift */
+  overflow: hidden;
   padding: 20px;
 `;
 
@@ -31,10 +31,9 @@ const Modal = styled.div`
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
-  overflow-x: hidden; /* ✅ Stop horizontal content movement */
+  overflow-x: hidden;
   box-sizing: border-box;
 
-  /* ✅ Smooth scroll + consistent layout */
   scrollbar-width: thin;
   scrollbar-color: ${({ theme }) => theme.soft} transparent;
 
@@ -133,7 +132,6 @@ const Desc = styled.textarea`
   }
 `;
 
-
 const Button = styled.button`
   border-radius: 5px;
   border: none;
@@ -173,6 +171,7 @@ function UploadModal({ setOpen }) {
 
   const handleUpload = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
     formData.append("video", video);
     formData.append("img", img);
@@ -182,20 +181,17 @@ function UploadModal({ setOpen }) {
     formData.append("userId", currentUser._id);
 
     try {
-      const res = await axios.post(
-        "http://localhost:8800/api/videos",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.post("/videos", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+
       if (res.status === 200) {
         setOpen(false);
         navigate(`/video/${res.data._id}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Upload failed:", err);
     }
   };
 

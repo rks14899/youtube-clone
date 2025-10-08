@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios from "../utils/axios";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { format } from "timeago.js"; // ✅ import timeago.js
+import { format } from "timeago.js";
 
 const Container = styled.div`
   display: flex;
@@ -42,33 +42,38 @@ const Text = styled.span`
 const Comment = ({ comment }) => {
   const [channel, setChannel] = useState({});
 
-  // ✅ helper for profile image
+  // ✅ Dynamic backend URL for images
+  const backendURL =
+    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
+
   const getProfileImage = (imgPath) => {
-    if (!imgPath) return "http://localhost:8800/profiles/default-profile.png";
+    if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `http://localhost:8800${imgPath}`;
+    return `${backendURL}${imgPath}`;
   };
 
   useEffect(() => {
     const fetchCommentUser = async () => {
       try {
-        const res = await axios.get(`http://localhost:8800/api/users/find/${comment.userId}`);
+        const res = await axios.get(`/users/find/${comment.userId}`);
         setChannel(res.data);
       } catch (err) {
         console.error("Failed to fetch user info:", err);
         setChannel({ username: "Unknown", img: "" });
       }
     };
-    fetchCommentUser();
-  }, [comment.userId]);
+    if (comment?.userId) fetchCommentUser();
+  }, [comment?.userId]);
 
   return (
     <Container>
-      <Avatar src={getProfileImage(channel?.img)} alt={channel?.username || "User"} />
+      <Avatar
+        src={getProfileImage(channel?.img)}
+        alt={channel?.username || "User"}
+      />
       <Details>
         <Name>
           {channel?.username || "Unknown"}{" "}
-          {/* ✅ Use timeago.js to show correct time */}
           <Date>{comment?.createdAt ? format(comment.createdAt) : ""}</Date>
         </Name>
         <Text>{comment?.desc}</Text>

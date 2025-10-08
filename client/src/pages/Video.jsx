@@ -10,7 +10,7 @@ import Comments from "../components/Comments";
 import Recommendation from "../components/Recommendation";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "../utils/axios"; // ✅ centralized axios instance
+import axios from "../utils/axios";
 import { dislike, fetchSuccess, like } from "../redux/videoSlice";
 import { format } from "timeago.js";
 import { subscription, logout } from "../redux/userSlice";
@@ -152,6 +152,18 @@ const Video = () => {
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  
+  const backendURL =
+    (process.env.REACT_APP_API_URL?.replace("/api", "")) ||
+    "http://localhost:8800";
+
+  // ✅ Helper to safely resolve media URLs
+  const getMediaUrl = (filePath) => {
+    if (!filePath) return "";
+    if (filePath.startsWith("http")) return filePath;
+    return `${backendURL}${filePath.startsWith("/") ? "" : "/"}${filePath}`;
+  };
+
   // ✅ Fetch video + channel data
   useEffect(() => {
     const fetchData = async () => {
@@ -168,7 +180,7 @@ const Video = () => {
       } catch (err) {
         console.error("Failed to fetch video/channel data:", err);
         setChannel({
-          name: "Unknown",
+          name: "Unknown Channel",
           img: "/profiles/default-profile.png",
           subscribers: 0,
         });
@@ -229,12 +241,6 @@ const Video = () => {
       </div>
     );
 
-  const getMediaUrl = (path) => {
-    if (!path) return "";
-    if (path.startsWith("http")) return path;
-    return `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8800"}${path}`;
-  };
-
   return (
     <Container>
       <Content>
@@ -287,6 +293,7 @@ const Video = () => {
                   ? getMediaUrl(channel.img)
                   : getMediaUrl("/profiles/default-profile.png")
               }
+              alt={channel?.name || "Channel Avatar"}
             />
             <ChannelDetail>
               <ChannelName>{channel?.name || "Unknown Channel"}</ChannelName>

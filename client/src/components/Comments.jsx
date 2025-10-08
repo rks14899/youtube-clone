@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Comment from "./Comment";
 import { useSelector } from "react-redux";
-import axios from "../utils/axios"; // ✅ Use centralized axios instance
+import axios from "../utils/axios"; // ✅ Centralized axios instance
 
 const Container = styled.div``;
 
@@ -40,15 +40,16 @@ export const Comments = ({ videoId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
-  // ✅ Dynamic backend URL for images
+  
   const backendURL =
-    process.env.REACT_APP_API_URL || "http://localhost:8800";
+    (process.env.REACT_APP_API_URL?.replace("/api", "")) ||
+    "http://localhost:8800";
 
-  // ✅ Helper to get full image URL
+  // ✅ Helper to get full image URL safely
   const getProfileImage = (imgPath) => {
     if (!imgPath) return `${backendURL}/profiles/default-profile.png`;
     if (imgPath.startsWith("http")) return imgPath;
-    return `${backendURL}${imgPath}`;
+    return `${backendURL}${imgPath.startsWith("/") ? "" : "/"}${imgPath}`;
   };
 
   // ✅ Fetch all comments

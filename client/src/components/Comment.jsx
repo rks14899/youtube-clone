@@ -42,9 +42,10 @@ const Text = styled.span`
 const Comment = ({ comment }) => {
   const [channel, setChannel] = useState({});
 
-  // ✅ Dynamic backend URL for images
+ 
   const backendURL =
-    process.env.REACT_APP_API_URL || "http://localhost:8800";
+    (process.env.REACT_APP_API_URL?.replace("/api", "")) ||
+    "http://localhost:8800";
 
   const getProfileImage = (imgPath) => {
     if (!imgPath) return `${backendURL}/profiles/default-profile.png`;

@@ -27,7 +27,11 @@ const connect = () => {
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "https://youtube-clone-frontend-6ikf.onrender.com", // ✅ your live frontend on Render
+      "http://localhost:3000", // ✅ for local development
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -37,7 +41,10 @@ app.use(express.json());
 
 // ✅ Serve all static folders
 app.use("/videos", express.static(path.join(__dirname, "public/videos")));
-app.use("/thumbnails", express.static(path.join(__dirname, "public/thumbnails")));
+app.use(
+  "/thumbnails",
+  express.static(path.join(__dirname, "public/thumbnails"))
+);
 app.use("/profiles", express.static(path.join(__dirname, "public/profiles"))); // ✅ new line
 
 // ✅ Routes

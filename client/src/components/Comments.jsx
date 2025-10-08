@@ -42,7 +42,7 @@ export const Comments = ({ videoId }) => {
 
   // ✅ Dynamic backend URL for images
   const backendURL =
-    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
+    process.env.REACT_APP_API_URL || "http://localhost:8800";
 
   // ✅ Helper to get full image URL
   const getProfileImage = (imgPath) => {

@@ -63,7 +63,7 @@ export default function Card({ type, video }) {
 
   // ✅ Dynamic backend URL
   const backendURL =
-    process.env.REACT_APP_API_URL?.replace("/api", "") || "http://localhost:8800";
+    process.env.REACT_APP_API_URL || "http://localhost:8800";
 
   useEffect(() => {
     if (!video?.userId) return;
